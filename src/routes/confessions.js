@@ -2,6 +2,7 @@ const {
   listConfessions,
   createConfession,
 } = require("../model/confessions.js");
+const { getSession } = require("../model/session.js");
 const { Layout } = require("../templates.js");
 
 function get(req, res) {
@@ -14,6 +15,19 @@ function get(req, res) {
    * [4] Get the page owner from the URL params
    * [5] If the logged in user is not the page owner send a 401 response
    */
+
+  // get session id from signed cookie
+  const sid = req.signedCookies.sid;
+  // use getSession func to get session from db
+  const session = getSession(sid);
+  // get logged in user's id from session
+  const present_user = session && session.user_id;
+  // get page owner from url params
+  const page_owner = Number(req.params.user_id);
+  // if logged in user is not page owner send a 401 error
+  if (present_user !== page_owner) {
+    return res.status(401).send("<h1>Page and user mismatch</h1>");
+  }
   const confessions = listConfessions(req.params.user_id);
   const title = "Your secrets";
   const content = /*html*/ `
