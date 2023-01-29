@@ -1,4 +1,5 @@
 const { Layout } = require("../templates.js");
+const { getSession } = require("../model/session.js");
 
 function get(req, res) {
   /**
@@ -9,10 +10,20 @@ function get(req, res) {
    * [5] Else render the sign up/log in links
    */
   const title = "Confess your secrets!";
+  // read session id from signed cookie
+  const sid = req.signedCookies.sid;
+  //get session from db
+  const session = getSession(sid);
+  // render out a log out form submitting req to POST/log-out
+  // else render sign up / log in links
   const content = /*html*/ `
     <div class="Cover">
       <h1>${title}</h1>
-      <nav><a href="/sign-up">Sign up</a> or <a href="/log-in">log in</a></nav>
+      ${
+        session
+          ? /*html*/ `<form method="POST" action="/log-out"><button>Log out</button></form>`
+          : /*html*/ `<nav><a href="/sign-up">Sign up</a> or <a href="/log-in">log in</a></nav>`
+      }
     </div>
   `;
   const body = Layout({ title, content });
