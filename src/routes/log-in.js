@@ -1,5 +1,7 @@
 const { getUserByEmail } = require("../model/user.js");
 const { Layout } = require("../templates.js");
+const { createSession } = require("../model/session.js");
+const bcrypt = require("bcryptjs");
 
 function get(req, res) {
   const title = "Log in to your account";
@@ -25,18 +27,39 @@ function get(req, res) {
 
 function post(req, res) {
   const { email, password } = req.body;
+  // getUserByEmail to grab user logging in
   const user = getUserByEmail(email);
+  // send 400 error if no user found
   if (!email || !password || !user) {
     return res.status(400).send("<h1>Login failed</h1>");
   }
-  res.send("to-do");
-  /**
-   * [1] Compare submitted password to stored hash
-   * [2] If no match redirect back to same page so user can retry
-   * [3] If match create a session with their user ID,
-   *     set a cookie with the session ID,
-   *     redirect to the user's confession page (e.g. /confessions/3)
-   */
+  // compare submitted password
+  bcrypt.compare(password, user.hash).then((result) => {
+    // if no match, send error msg
+    if (!result) {
+      return res.status(400).send(`<h1>User not matched</h1>`);
+    } else {
+      // use createSession func to insert new session in db
+      const session_id = createSession(user.id);
+      // get  a signed sid cookie containing session id
+      res.cookie("sid", session_id, {
+        signed: true,
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+        sameSite: "lax",
+      });
+      // redirect to user's confession page
+      res.redirect(`/confessions/${user.id}`);
+    }
+  });
 }
+
+/**
+ * [1] Compare submitted password to stored hash
+ * [2] If no match redirect back to same page so user can retry
+ * [3] If match create a session with their user ID,
+ *     set a cookie with the session ID,
+ *     redirect to the user's confession page (e.g. /confessions/3)
+ */
 
 module.exports = { get, post };
