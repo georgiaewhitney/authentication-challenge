@@ -21,11 +21,11 @@ function get(req, res) {
   // use getSession func to get session from db
   const session = getSession(sid);
   // get logged in user's id from session
-  const present_user = session && session.user_id;
+  const current_user = session && session.user_id;
   // get page owner from url params
   const page_owner = Number(req.params.user_id);
   // if logged in user is not page owner send a 401 error
-  if (present_user !== page_owner) {
+  if (current_user !== page_owner) {
     return res.status(401).send("<h1>Page and user mismatch</h1>");
   }
   const confessions = listConfessions(req.params.user_id);
@@ -65,9 +65,19 @@ function post(req, res) {
    * [4] Use the user ID to create the confession in the DB
    * [5] Redirect back to the logged in user's confession page
    */
-  const current_user = Number(req.params.user_id);
+  // get session id from signed cookie
+  const sid = req.signedCookies.sid;
+  // get session from the db
+  const session = getSession(sid);
+  // get logged in users id from session
+  const current_user = session && session.user_id;
+  // if no logged in user send a 401 error
+  if (!req.body.content || !current_user) {
+    return res.status(401).send("<h1>Not able to confess");
+  }
+  // use user id to create confession in db
   createConfession(req.body.content, current_user);
+  // redirect back to the logged in user's confession page
   res.redirect(`/confessions/${current_user}`);
 }
-
 module.exports = { get, post };
