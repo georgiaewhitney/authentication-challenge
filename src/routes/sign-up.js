@@ -37,7 +37,7 @@ function post(req, res) {
       const user = createUser(email, hash);
       // use createSession func to insert new session in db
       const session_id = createSession(user.id);
-      // set signed sid cookie
+      // set signed sid cookie with cookie attributes
       res.cookie("sid", session_id, {
         signed: true,
         httpOnly: true,

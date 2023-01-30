@@ -22,6 +22,7 @@ function createSession(user_id) {
   insert_session.run({ id, user_id });
   // passing an object - shorthand notation, looks like destructuring but it is notation shorthand for below
   // insert_session.run({id:id, user_id:user_id});
+  //session.run expects an object
 
   // return generated id to store in cookie later on
   return id;
