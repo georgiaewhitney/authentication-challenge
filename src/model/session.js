@@ -38,6 +38,7 @@ const delete_session = db.prepare(`
 
 function removeSession(sid) {
   return delete_session.run(sid);
+  // returns { changes: 0, lastInsertRowid: 0}
 }
 
 module.exports = { createSession, getSession, removeSession };
