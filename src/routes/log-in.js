@@ -37,7 +37,9 @@ function post(req, res) {
   bcrypt.compare(password, user.hash).then((result) => {
     // if no match, send error msg
     if (!result) {
-      return res.status(400).send(`<h1>User not matched</h1>`);
+      return res.status(400).send
+      (`<h1>User not matched</h1>`);
+      // don't put this, as it gives too much away - better to state that the login failed
     } else {
       // use createSession func to insert new session in db
       const session_id = createSession(user.id);
